@@ -9,87 +9,120 @@
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <style>
-body {
-    font-family: sans-serif;
-    background-color: #fdfae7;
-    margin: 20px;
-    text-align: center;
-}
+    body {
+        font-family: sans-serif;
+        background-color: #fdfae7;
+        margin: 20px;
+        text-align: center;
+    }
 
-.outer-box {
-    border: 2px solid #555;
-    border-radius: 20px;
-    padding: 20px;
-}
+    /* ปรับปรุง CSS ให้เรียง 2 ฝั่งตามแบบร่างเดิม */
+    .outer-box {
+        border: 2px solid #555;
+        border-radius: 30px;
+        padding: 20px;
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
 
-.map-box {
-    height: 200px;
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 10px;
-}
+    .location-item {
+        flex: 1;
+        min-width: 280px;
+        margin-bottom: 20px;
+    }
 
-button {
-    padding: 12px;
-    border: none;
-    border-radius: 10px;
-    background: #06C755;
-    color: white;
-    font-size: 16px;
-    width: 100%;
-    margin-top: 10px;
-}
+    .map-box {
+        height: 200px;
+        border: 1px solid #ccc;
+        border-radius: 15px;
+        overflow: hidden;
+        margin-bottom: 10px;
+    }
+
+    button {
+        padding: 12px;
+        border: none;
+        border-radius: 10px;
+        background: #06C755; /* สีเขียว LINE */
+        color: white;
+        font-size: 16px;
+        width: 100%;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    button:active {
+        background: #05a346;
+    }
 </style>
 </head>
 
 <body>
 
-<h2> Location 📍</h2>
+<h2>Location 📍</h2>
 
 <div class="outer-box">
 
     <!-- สมุทรสาคร -->
-    <div>
+    <div class="location-item">
         <div class="map-box">
             <iframe src="https://www.google.com/maps?q=13.516803,100.297749&z=14&output=embed"
             width="100%" height="100%" style="border:0;"></iframe>
         </div>
-        <button onclick="sendLocation('สมุทรสาคร')">เลือกสมุทรสาคร</button>
+        <button onclick="sendLocation('สมุทรสาคร', 'https://www.google.com/maps?q=13.516803,100.297749')">
+            เลือกสมุทรสาคร
+        </button>
     </div>
 
     <!-- สมุทรปราการ -->
-    <div>
+    <div class="location-item">
         <div class="map-box">
             <iframe src="https://www.google.com/maps?q=13.599096,100.599831&z=14&output=embed"
             width="100%" height="100%" style="border:0;"></iframe>
         </div>
-        <button onclick="sendLocation('สมุทรปราการ')">เลือกสมุทรปราการ</button>
+        <button onclick="sendLocation('สมุทรปราการ', 'https://www.google.com/maps?q=13.599096,100.599831')">
+            เลือกสมุทรปราการ
+        </button>
     </div>
 
 </div>
 
 <script>
-const LIFF_ID = "YOUR_LIFF_ID"; // 🔥 ใส่ของคุณตรงนี้
+// ⚠️ แก้ไขตรงนี้: ต้องใส่ ID ในเครื่องหมายคำพูด " "
+const MY_LIFF_ID = "2009962426-SlJBsvlK"; 
 
 async function main() {
-    await liff.init({ liffId: 2009962426-SlJBsvlK });
-
-    if (!liff.isLoggedIn()) {
-        liff.login();
+    try {
+        await liff.init({ liffId: MY_LIFF_ID });
+        if (!liff.isLoggedIn()) {
+            liff.login();
+        }
+    } catch (error) {
+        console.error("LIFF Init Error:", error);
     }
 }
 
 main();
 
-// ✅ ส่งข้อความกลับแชต
-function sendLocation(place) {
+// ✅ ฟังก์ชันส่งชื่อสถานที่และลิงก์ Google Maps กลับเข้าแชต
+function sendLocation(name, mapUrl) {
+    if (!liff.isInClient()) {
+        alert("กรุณาเปิดในแอป LINE เท่านั้น");
+        return;
+    }
+
     liff.sendMessages([
         {
             type: "text",
-            text: "ฉันเลือก: " + place
+            text: "📍 สถานที่ที่เลือก: " + name + "\nดูแผนที่: " + mapUrl
         }
     ]).then(() => {
-        liff.closeWindow(); // ปิดหน้า LIFF
+        console.log("Message sent");
+        liff.closeWindow(); // ส่งเสร็จแล้วปิดหน้าจอทันที
+    }).catch((err) => {
+        console.error("Error sending message:", err);
+        alert("เกิดข้อผิดพลาดในการส่งข้อความ");
     });
 }
 </script>
