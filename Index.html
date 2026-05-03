@@ -1,167 +1,98 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แบบร่างสถานที่</title>
-    <style>
-        /* สไตล์พื้นฐานของหน้า */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #fdfae7; /* พื้นหลังสีครีมตามรูป */
-            margin: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Location LIFF</title>
 
-        /* กล่องคอนเทนเนอร์หลัก */
-        .page-container {
-            width: 100%;
-            max-width: 800px;
-            padding: 20px;
-            box-sizing: border-box;
-        }
+<!-- ✅ LIFF SDK -->
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
-        /* หัวข้อ "Location" */
-        .location-header {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-        }
+<style>
+body {
+    font-family: sans-serif;
+    background-color: #fdfae7;
+    margin: 20px;
+    text-align: center;
+}
 
-        /* จำลองไอคอนหมุด (สามารถแทนที่ด้วย FontAwesome) */
-        .location-icon {
-            font-size: 20px;
-            margin-left: 8px;
-        }
+.outer-box {
+    border: 2px solid #555;
+    border-radius: 20px;
+    padding: 20px;
+}
 
-        /* กล่องกรอบด้านนอกที่เป็นเส้นขอบโค้งมน */
-        .outer-box {
-            border: 2px solid #555; /* ปรับสีเส้นให้ดูเหมือนลายมือ */
-            border-radius: 30px; /* มุมโค้งมนตามรูป */
-            padding: 40px;
-            position: relative;
-            background-color: transparent; /* โปร่งใสตามรูป */
-        }
+.map-box {
+    height: 200px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
 
-        /* การจัดเรียงกล่องสถานที่ภายในเป็น 2 คอลัมน์ */
-        .location-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-            flex-wrap: wrap; /* ให้เรียงต่อกันเมื่อจอแคบ */
-        }
-
-        /* สไตล์ของแต่ละคอลัมน์สถานที่ */
-        .location-column {
-            flex: 1 1 45%; /* ขยาย/หดได้ตามพื้นที่ */
-            min-width: 280px; /* ขนาดขั้นต่ำ */
-            display: flex;
-            flex-direction: column;
-            align-items: center; /* จัดกลาง */
-            position: relative;
-        }
-
-        /* กล่องแผนที่ (กรอบใน) */
-        .map-box {
-            width: 100%;
-            height: 250px;
-            border: 2px solid #666; /* ปรับสีเส้น */
-            border-radius: 15px; /* มุมโค้งมน */
-            position: relative;
-            background-color: #f5f5f5; /* พื้นหลังกล่องแผนที่เพื่อให้เห็นชัดขึ้น */
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05); /* เพิ่มเงาเล็กน้อยเพื่อให้มีมิติ */
-        }
-
-        /* ข้อความที่เขียนทับแผนที่ */
-        .map-overlay-text {
-            position: absolute;
-            top: 50px;
-            left: 20px;
-            font-weight: bold;
-            font-size: 1.1em;
-            color: #444;
-        }
-
-        /* ข้อความป้ายกำกับด้านล่าง */
-        .label-text {
-            margin-top: 50px; /* เว้นพื้นที่ให้เส้น */
-            font-size: 1em;
-            color: #555;
-            position: relative;
-            display: inline-block;
-        }
-
-        /* เส้นโยงจากข้อความป้ายกำกับไปยังกล่องแผนที่ */
-        .connector-line {
-            position: absolute;
-            bottom: -5px; /* ปลายเส้นเริ่มที่ด้านบนข้อความ */
-            left: 50%;
-            width: 1px;
-            height: 40px; /* ความยาวของเส้น */
-            background-color: #777; /* สีของเส้น */
-            transform-origin: center top;
-        }
-
-        /* ปรับองศาเส้นทางซ้าย */
-        .column-left .connector-line {
-            transform: rotate(-10deg); /* ปรับตามความเหมาะสม */
-        }
-
-        /* ปรับองศาเส้นทางขวา */
-        .column-right .connector-line {
-            transform: rotate(10deg); /* ปรับตามความเหมาะสม */
-        }
-
-        /* ข้อความป้ายกำกับสำหรับหน้าแผนที่ */
-        .label-text::before {
-            content: "หน้าแผนที่";
-            display: block;
-        }
-
-    </style>
+button {
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: #06C755;
+    color: white;
+    font-size: 16px;
+    width: 100%;
+    margin-top: 10px;
+}
+</style>
 </head>
+
 <body>
 
-    <div class="page-container">
-        <!-- หัวข้อ Location พร้อมหมุด -->
-        <div class="location-header">
-            Location <span class="location-icon">📍</span>
-        </div>
+<h2>เลือก Location 📍</h2>
 
-        <!-- กล่องกรอบนอก -->
-        <div class="outer-box">
-            <div class="location-row">
-                <!-- คอลัมน์ซ้าย (สมุทรสาคร) -->
-                <div class="location-column column-left">
-                    <div class="map-box">
-                        <span class="map-overlay-text">สมุทรสาคร</span>
-                        <iframe src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3879.3059920593128!2d100.29774927508606!3d13.516803786851014!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMTPCsDMxJzAwLjUiTiAxMDDCsDE4JzAxLjIiRQ!5e0!3m2!1sth!2sth!4v1777821954160!5m2!1sth!2sth" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-                    </div>
-                    <div class="label-text">
-                        <div class="connector-line"></div>
-                    </div>
-                </div>
+<div class="outer-box">
 
-                <!-- คอลัมน์ขวา (สมุทรปราการ) -->
-                <div class="location-column column-right">
-                    <div class="map-box">
-                        <span class="map-overlay-text">สมุทรปราการ</span>
-                        <!-- คุณสามารถใส่โค้ด iframe แผนที่จริงตรงนี้ได้ -->
-                        <!-- เช่น <iframe src="..." width="100%" height="100%"></iframe> -->
-                    </div>
-                    <div class="label-text">
-                        <div class="connector-line"></div>
-                    </div>
-                </div>
-            </div>
+    <!-- สมุทรสาคร -->
+    <div>
+        <div class="map-box">
+            <iframe src="https://www.google.com/maps?q=13.516803,100.297749&z=14&output=embed"
+            width="100%" height="100%" style="border:0;"></iframe>
         </div>
+        <button onclick="sendLocation('สมุทรสาคร')">เลือกสมุทรสาคร</button>
     </div>
+
+    <!-- สมุทรปราการ -->
+    <div>
+        <div class="map-box">
+            <iframe src="https://www.google.com/maps?q=13.599096,100.599831&z=14&output=embed"
+            width="100%" height="100%" style="border:0;"></iframe>
+        </div>
+        <button onclick="sendLocation('สมุทรปราการ')">เลือกสมุทรปราการ</button>
+    </div>
+
+</div>
+
+<script>
+const LIFF_ID = "YOUR_LIFF_ID"; // 🔥 ใส่ของคุณตรงนี้
+
+async function main() {
+    await liff.init({ liffId: 2009962426-MPtoZcTX });
+
+    if (!liff.isLoggedIn()) {
+        liff.login();
+    }
+}
+
+main();
+
+// ✅ ส่งข้อความกลับแชต
+function sendLocation(place) {
+    liff.sendMessages([
+        {
+            type: "text",
+            text: "ฉันเลือก: " + place
+        }
+    ]).then(() => {
+        liff.closeWindow(); // ปิดหน้า LIFF
+    });
+}
+</script>
 
 </body>
 </html>
